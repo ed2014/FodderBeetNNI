@@ -18,7 +18,7 @@ Read
 
 ```{r Read, include=FALSE, echo=FALSE}
 
-fileFolder <- "C:\\GitHubRepos\\NNI_fodderB\\"
+fileFolder <- "C:\\GitHubRepos\\FodderBeetNNI\\"
 
 info <- read.table(paste0(fileFolder, "NNI_foddetB.txt"), header = TRUE)
 #C:\GitHubRepos\NNI_fodderB\NNI_foddetB.txt
@@ -55,10 +55,6 @@ str(info)
 ```{r SetUpDfGraph, echo=FALSE, warning=FALSE}
 
 info_graph <- info %>%
- # dplyr::select(-Shoot_DM, -Bulb_DM) %>%
- # tidyr::gather("Variable", "Value",11:12) %>%
- # mutate(Variable = as.factor(Variable))  %>%
-#  dplyr::select(Shoot_N_con, Shoot_DM, Bulb_N_con, Bulb_DM, Total_N_con, Total_DM) %>%
   tidyr::gather("Variable", "Value",7:20) %>%
   mutate(Variable = as.factor(Variable))
 
@@ -90,6 +86,31 @@ info_graph %>%
                     ymax=mean+sd/2), 
                 width=0.25) # +
 # y(0,25)
+
+
+# percentage of biomass FIXME
+info_graph %>%
+  group_by(Experiment, N_Treatments, Water_Treatments, Date, Variable) %>%
+#  filter(Variable != "Bulb_DM", Variable != "Shoot_DM") %>%
+  filter(grepl("_DM", Variable)) %>%
+  tidyr::spread(Variable, Value) %>%
+  tidyr::gather("Variable", "Value",7:10) %>%
+  mutate(Bio_perc = Value/Total_DM*100) %>%
+  dplyr::select(Experiment, N_Treatments, Water_Treatments, Date, Variable, Bio_perc) %>%
+  group_by(Experiment, N_Treatments, Water_Treatments, Date, Variable) %>%
+  summarise(perc_mean = mean(Bio_perc), perc_sd = sd(Bio_perc)) %>%
+  ggplot(aes(x=Date,y=perc_mean, 
+             shape=factor(Water_Treatments),
+             colour=factor(N_Treatments))) +
+  geom_point() +
+  geom_line(aes(linetype = factor(Water_Treatments))) +
+  facet_grid(Variable~Experiment+Water_Treatments, scales= "free") +
+  ylab("Percentage in total biomass (%)") +
+  xlab("Date") +
+  geom_errorbar(aes(ymin=perc_mean-perc_sd/2,
+                    ymax=perc_mean+perc_sd/2), 
+                width=0.25) # +
+
 
 # concentrations
 info_graph %>%
