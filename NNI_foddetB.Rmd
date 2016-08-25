@@ -62,6 +62,27 @@ summary(info_graph)
   
 ```
 
+
+```{r}
+
+mf_labeller <- function(var, value){ # lifted bodily from the R Cookbook
+    value <- as.character(value)
+    if (var=="Variable") {
+        value[value=="Bulb_DM"]   <- "Storage root"
+        value[value=="Dead_DM"]   <- "Senesced"
+        value[value=="Lamina_DM"]   <- "Leaves"
+        value[value=="Petiole_DM"]   <- "Petioles"
+    #    value[value=="Total_DM"]   <- "Total biomass"
+    }
+    return(value)
+}
+
+
+
+```
+
+
+
 ## Time series
 
 ```{r TimeSeries, echo=FALSE,fig.height=10, fig.width=8}
@@ -72,6 +93,7 @@ info_graph %>%
   group_by(Experiment, N_Treatments, Water_Treatments, Date, Variable) %>%
 #  filter(Variable != "Bulb_DM", Variable != "Shoot_DM") %>%
   filter(grepl("_DM", Variable)) %>%
+  filter(Variable == "Total_DM") %>%
   dplyr::select(-DAS,-Rep) %>%
   summarise_each(funs(mean,sd)) %>%
   ggplot(aes(x=Date,y=mean, 
@@ -79,12 +101,16 @@ info_graph %>%
              colour=factor(N_Treatments))) +
   geom_point() +
   geom_line(aes(linetype = factor(Water_Treatments))) +
-  facet_grid(Variable~Experiment+Water_Treatments, scales= "free") +
-  ylab("Biomass (t/ha)") +
+  facet_grid(Variable~Experiment, scales= "free") +
+  ylab("Total biomass (t/ha)") +
   xlab("Date") +
   geom_errorbar(aes(ymin=mean-sd/2,
                     ymax=mean+sd/2), 
-                width=0.25) # +
+                width=0.5)  +
+#  theme(legend.title=element_blank()) +
+  labs(linetype="Water regime", colour="N fertiliser (kg/ha)", shape="Water regime") +
+  theme(strip.text.y = element_blank())
+
 # y(0,25)
 
 
@@ -95,6 +121,8 @@ info_graph %>%
   filter(grepl("_DM", Variable)) %>%
   tidyr::spread(Variable, Value) %>%
   tidyr::gather("Variable", "Value",7:10) %>%
+  mutate(Variable =  factor(Variable, levels = c("Bulb_DM", "Lamina_DM", "Petiole_DM", "Dead_DM"), 
+                                                labels = c("Storage root", "Leaves", "Petioles", "Senesced"))) %>%
   mutate(Bio_perc = Value/Total_DM*100) %>%
   dplyr::select(Experiment, N_Treatments, Water_Treatments, Date, Variable, Bio_perc) %>%
   group_by(Experiment, N_Treatments, Water_Treatments, Date, Variable) %>%
@@ -105,11 +133,14 @@ info_graph %>%
   geom_point() +
   geom_line(aes(linetype = factor(Water_Treatments))) +
   facet_grid(Variable~Experiment+Water_Treatments, scales= "free") +
-  ylab("Percentage in total biomass (%)") +
+  ylab("Percentage of total dry matter (%)") +
   xlab("Date") +
+#  theme(legend.title=element_blank()) +
+  labs(linetype="Water regime", colour="N fertiliser (kg/ha)", shape="Water regime") +
+ # theme(strip.text.y = element_blank()) +
   geom_errorbar(aes(ymin=perc_mean-perc_sd/2,
                     ymax=perc_mean+perc_sd/2), 
-                width=0.25) # +
+                width=0.5)
 
 
 # concentrations
