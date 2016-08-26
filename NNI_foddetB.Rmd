@@ -65,17 +65,17 @@ summary(info_graph)
 
 ```{r}
 
-mf_labeller <- function(var, value){ # lifted bodily from the R Cookbook
-    value <- as.character(value)
-    if (var=="Variable") {
-        value[value=="Bulb_DM"]   <- "Storage root"
-        value[value=="Dead_DM"]   <- "Senesced"
-        value[value=="Lamina_DM"]   <- "Leaves"
-        value[value=="Petiole_DM"]   <- "Petioles"
-    #    value[value=="Total_DM"]   <- "Total biomass"
-    }
-    return(value)
-}
+# mf_labeller <- function(var, value){ # lifted bodily from the R Cookbook
+#     value <- as.character(value)
+#     if (var=="Variable") {
+#         value[value=="Bulb_DM"]   <- "Storage root"
+#         value[value=="Dead_DM"]   <- "Senesced"
+#         value[value=="Lamina_DM"]   <- "Leaves"
+#         value[value=="Petiole_DM"]   <- "Petioles"
+#         value[value=="Total_DM"]   <- "Total biomass"
+#     }
+#     return(value)
+# }
 
 
 
@@ -145,10 +145,13 @@ info_graph %>%
 
 # concentrations
 info_graph %>%
+  filter(grepl("_con", Variable)) %>%
+#  summary()
+  mutate(Variable =  factor(Variable, levels = c("Total_N_conc","Bulb_N_con", "Lamina_N_con", "Petiole_N_con", "Dead_leaf_N_con"), 
+                                                labels = c("Total biomass","Storage root", "Leaves", "Petioles", "Senesced"))) %>%
+  dplyr::select(-DAS,-Rep) %>%
   group_by(Experiment, N_Treatments, Water_Treatments, Date, Variable) %>%
 #  filter(Variable != "Bulb_DM", Variable != "Shoot_DM") %>%
-  filter(grepl("_con", Variable)) %>%
-  dplyr::select(-DAS,-Rep) %>%
   summarise_each(funs(mean,sd)) %>%
   ggplot(aes(x=Date,y=mean, 
              shape=factor(Water_Treatments),
@@ -156,11 +159,12 @@ info_graph %>%
   geom_point() +
   geom_line(aes(linetype = factor(Water_Treatments))) +
   facet_grid(Variable~Experiment+Water_Treatments, scales= "free") +
-  ylab("Nitrogen concentration in tissue (%)") +
+  labs(linetype="Water regime", colour="N fertiliser (kg/ha)", shape="Water regime") +
+  ylab("Nitrogen concentration (%)") +
   xlab("Date") +
   geom_errorbar(aes(ymin=mean-sd/2,
                     ymax=mean+sd/2), 
-                width=0.25) # +
+                width=0.5) # +
  # ylim(0,5)
 
 
