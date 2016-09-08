@@ -110,7 +110,7 @@ info_graph %>%
 #  theme(legend.title=element_blank()) +
   labs(linetype="Water regime", colour="N fertiliser (kg/ha)", shape="Water regime") +
   theme(strip.text.y = element_blank())
-
+ ggsave(file=paste0("Fig_Bio.tiff"), dpi = 300)
 # y(0,25)
 
 
@@ -141,6 +141,7 @@ info_graph %>%
   geom_errorbar(aes(ymin=perc_mean-perc_sd/2,
                     ymax=perc_mean+perc_sd/2), 
                 width=0.5)
+ggsave(file=paste0("Fig_BioFrac.tiff"), dpi = 300)
 
 
 # concentrations
@@ -165,6 +166,7 @@ info_graph %>%
   geom_errorbar(aes(ymin=mean-sd/2,
                     ymax=mean+sd/2), 
                 width=0.5) # +
+ggsave(file=paste0("Fig_Nconc.tiff"), dpi = 300)
  # ylim(0,5)
 
 
